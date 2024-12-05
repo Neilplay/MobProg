@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AccountManager from './components/AccountManager';
 import TransactionScreen from './components/TransactionScreen';
-import QRCodeScanner from './components/QRCodeScanner';
+//import QRCodeScanner from './components/QRCodeScanner';
 
 
 type RootStackParamList = {
@@ -20,8 +20,9 @@ export default function App() {
       <Stack.Navigator initialRouteName="AccountManager">
         <Stack.Screen name="AccountManager" component={AccountManager} />
         <Stack.Screen name="TransactionScreen" component={TransactionScreen} />
-        <Stack.Screen name="QRCodeScanner" component={QRCodeScanner} />
+        
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
+//<Stack.Screen name="QRCodeScanner" component={QRCodeScanner} />
