@@ -1,18 +1,18 @@
-import React, { useState } from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { createStackNavigator } from "@react-navigation/stack";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { StatusBar } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import React, { useState } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StatusBar } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-import AccountManager from "./components/AccountManager";
-import TransactionScreen from "./components/TransactionScreen";
-import TransactionHistory from "./components/TransactionHistory";
-import LoginPage from "./components/LoginPage";
-import ForgotPassword from "./components/ForgotPassword";
-import SignUp from "./components/SignUp";
-import ProfilePage from "./components/ProfilePage"; // Import the new component
+import AccountManager from './components/AccountManager';
+import TransactionScreen from './components/TransactionScreen';
+import TransactionHistory from './components/TransactionHistory';
+import LoginPage from './components/LoginPage';
+import ForgotPassword from './components/ForgotPassword';
+import SignUp from './components/SignUp';
+import ProfilePage from './components/ProfilePage'; // Import the new component
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -32,6 +32,7 @@ const AuthStack: React.FC<AuthStackProps> = ({ handleLogin }) => (
   </Stack.Navigator>
 );
 
+
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -44,48 +45,48 @@ export default function App() {
       <NavigationContainer>
         <StatusBar barStyle="dark-content" />
         {!isLoggedIn ? (
-          <AuthStack handleLogin={handleLogin} />
+          <AuthStack handleLogin={handleLogin} />  // This will show the Login screen after logout
         ) : (
           <Tab.Navigator
             initialRouteName="AccountManager"
             screenOptions={({ route }) => ({
               tabBarIcon: ({ focused, color, size }) => {
-                let iconName = "";
-                if (route.name === "AccountManager") {
-                  iconName = focused ? "wallet" : "wallet-outline";
-                } else if (route.name === "TransactionScreen") {
-                  iconName = focused ? "cash" : "cash-outline";
-                } else if (route.name === "TransactionHistory") {
-                  iconName = focused ? "list" : "list-outline";
-                } else if (route.name === "ProfilePage") {
-                  iconName = focused ? "person" : "person-outline";
+                let iconName = '';
+                if (route.name === 'AccountManager') {
+                  iconName = focused ? 'wallet' : 'wallet-outline';
+                } else if (route.name === 'TransactionScreen') {
+                  iconName = focused ? 'cash' : 'cash-outline';
+                } else if (route.name === 'TransactionHistory') {
+                  iconName = focused ? 'list' : 'list-outline';
+                } else if (route.name === 'ProfilePage') {
+                  iconName = focused ? 'person' : 'person-outline';
                 }
                 return <Ionicons name={iconName} size={size} color={color} />;
               },
-              tabBarActiveTintColor: "#007BFF",
-              tabBarInactiveTintColor: "gray",
+              tabBarActiveTintColor: '#007BFF',
+              tabBarInactiveTintColor: 'gray',
               headerShown: false,
             })}
           >
             <Tab.Screen
               name="AccountManager"
               component={AccountManager}
-              options={{ title: "Payment Methods" }}
+              options={{ title: 'Payment Methods' }}
             />
             <Tab.Screen
               name="TransactionScreen"
               component={TransactionScreen}
-              options={{ title: "Transactions" }}
+              options={{ title: 'Transactions' }}
             />
             <Tab.Screen
               name="TransactionHistory"
               component={TransactionHistory}
-              options={{ title: "History" }}
+              options={{ title: 'History' }}
             />
             <Tab.Screen
               name="ProfilePage"
               component={ProfilePage}
-              options={{ title: "Profile" }}
+              options={{ title: 'Profile' }}
             />
           </Tab.Navigator>
         )}
@@ -93,3 +94,4 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
