@@ -1,39 +1,44 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { supabase } from '../components/backend/supabase'; // Import your Supabase client
 
-// Define route parameters
 type AuthStackParamList = {
   ForgotPassword: undefined;
   SignUp: undefined;
 };
 
-// Define props type
+type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList>;
+
 interface LoginPageProps {
   onLogin: () => void;
 }
 
-// Type for the navigation prop
-type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList>;
-
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  // Typed navigation
   const navigation = useNavigation<LoginScreenNavigationProp>();
 
-  const handleLoginPress = (): void => {
-    if (email && password) {
-      onLogin();
-    } else {
-      alert('Please enter valid credentials.');
+  const handleLoginPress = async (): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        alert(error.message);
+      } else {
+        onLogin();
+      }
+    } catch (err) {
+      alert('Login failed. Please try again.');
     }
   };
 
   return (
     <View style={styles.container}>
+      <Image
+        source={require('../assets/favicon.png')} // Replace with your actual logo path
+        style={styles.logo}
+      />
       <Text style={styles.title}>Login</Text>
       <TextInput
         placeholder="Email"
@@ -49,17 +54,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         style={styles.input}
         secureTextEntry
       />
-      <Button title="Login" onPress={handleLoginPress} />
-      <TouchableOpacity
-        onPress={() => navigation.navigate('ForgotPassword')}
-        style={styles.link}
-      >
+      <TouchableOpacity style={styles.button} onPress={handleLoginPress}>
+        <Text style={styles.buttonText}>Login</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={styles.link}>
         <Text style={styles.linkText}>Forgot Password?</Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => navigation.navigate('SignUp')}
-        style={styles.link}
-      >
+      <TouchableOpacity onPress={() => navigation.navigate('SignUp')} style={styles.link}>
         <Text style={styles.linkText}>Sign Up</Text>
       </TouchableOpacity>
     </View>
@@ -72,6 +73,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
     backgroundColor: '#f9f9f9',
+  },
+  logo: {
+    width: 159, // Adjust the width of your logo
+    height: 150, // Adjust the height of your logo
+    alignSelf: 'center', // Center the logo horizontally
+    marginBottom: 20, // Add spacing below the logo
   },
   title: {
     fontSize: 24,
@@ -86,12 +93,24 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 20,
   },
+  button: {
+    backgroundColor: 'orange',
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   link: {
     marginTop: 10,
     alignItems: 'center',
   },
   linkText: {
-    color: '#007BFF',
+    color: '#666', // Updated text color for links
     fontSize: 16,
   },
 });

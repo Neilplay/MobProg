@@ -1,13 +1,36 @@
-// ForgotPassword.js
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { supabase } from '../components/backend/supabase';
 
-const ForgotPassword = () => {
+const ForgotPassword: React.FC = () => {
+  const [email, setEmail] = useState<string>(''); // Explicitly specify the type
+
+  const handleResetPassword = async (): Promise<void> => {
+    try {
+      // Supabase's resetPasswordForEmail expects a string as an argument
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+      if (error) {
+        alert(error.message);
+      } else {
+        alert('Password reset email sent.');
+      }
+    } catch (err) {
+      console.error('Error sending reset email:', err);
+      alert('Failed to send reset email. Please try again.');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Forgot Password</Text>
-      <TextInput placeholder="Email" style={styles.input} keyboardType="email-address" />
-      <Button title="Reset Password" onPress={() => alert('Reset logic here')} />
+      <TextInput
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        style={styles.input}
+        keyboardType="email-address"
+      />
+      <Button title="Reset Password" onPress={handleResetPassword} />
     </View>
   );
 };
