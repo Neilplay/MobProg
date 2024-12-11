@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { supabase } from '../components/backend/supabase';
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // State to toggle confirm password visibility
 
   const handleSignUp = async (): Promise<void> => {
     if (password !== confirmPassword) {
@@ -26,6 +28,10 @@ const SignUp = () => {
 
   return (
     <View style={styles.container}>
+      <Image
+        source={require('../assets/favicon.png')} // Replace with your actual logo path
+        style={styles.logo}
+      />
       <Text style={styles.title}>Sign Up</Text>
       <TextInput
         placeholder="Email"
@@ -34,21 +40,33 @@ const SignUp = () => {
         style={styles.input}
         keyboardType="email-address"
       />
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        style={styles.input}
-        secureTextEntry
-      />
-      <TextInput
-        placeholder="Confirm Password"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        style={styles.input}
-        secureTextEntry
-      />
-      <Button title="Sign Up" onPress={handleSignUp} />
+      <View style={styles.passwordContainer}>
+        <TextInput
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          style={styles.input}
+          secureTextEntry={!showPassword} // Toggle password visibility
+        />
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+          <Text style={styles.eyeIconText}>{showPassword ? 'Hide' : 'Show'}</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.passwordContainer}>
+        <TextInput
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          style={styles.input}
+          secureTextEntry={!showConfirmPassword} // Toggle confirm password visibility
+        />
+        <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeIcon}>
+          <Text style={styles.eyeIconText}>{showConfirmPassword ? 'Hide' : 'Show'}</Text>
+        </TouchableOpacity>
+      </View>
+      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
+        <Text style={styles.buttonText}>Sign Up</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -59,6 +77,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
     backgroundColor: '#f9f9f9',
+  },
+  logo: {
+    width: 159, // Adjust the width of your logo
+    height: 150, // Adjust the height of your logo
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,
@@ -72,6 +96,31 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     marginBottom: 20,
+  },
+  passwordContainer: {
+    position: 'relative',
+    marginBottom: 20,
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: 15,
+  },
+  eyeIconText: {
+    color: '#007BFF',
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: 'orange',
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

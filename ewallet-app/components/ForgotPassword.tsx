@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { supabase } from '../components/backend/supabase';
 
 const ForgotPassword: React.FC = () => {
@@ -22,6 +22,10 @@ const ForgotPassword: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      <Image
+        source={require('../assets/favicon.png')} // Replace with your actual logo path
+        style={styles.logo}
+      />
       <Text style={styles.title}>Forgot Password</Text>
       <TextInput
         placeholder="Email"
@@ -30,7 +34,9 @@ const ForgotPassword: React.FC = () => {
         style={styles.input}
         keyboardType="email-address"
       />
-      <Button title="Reset Password" onPress={handleResetPassword} />
+      <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
+        <Text style={styles.buttonText}>Reset Password</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -41,6 +47,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
     backgroundColor: '#f9f9f9',
+  },
+  logo: {
+    width: 159, // Adjust the width of your logo
+    height: 150, // Adjust the height of your logo
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,
@@ -54,6 +66,18 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     marginBottom: 20,
+  },
+  button: {
+    backgroundColor: 'orange',
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

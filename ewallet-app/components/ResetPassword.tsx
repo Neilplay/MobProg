@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 
 const ResetPassword: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [token, setToken] = useState<string | null>(null);
-  
+
   const route = useRoute();
 
   useEffect(() => {
@@ -31,6 +31,10 @@ const ResetPassword: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      <Image
+        source={require('../assets/favicon.png')} // Replace with your actual logo path
+        style={styles.logo}
+      />
       <Text style={styles.title}>Reset Password</Text>
       <TextInput
         placeholder="New Password"
@@ -46,7 +50,9 @@ const ResetPassword: React.FC = () => {
         style={styles.input}
         secureTextEntry
       />
-      <Button title="Reset Password" onPress={handleResetPassword} />
+      <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
+        <Text style={styles.buttonText}>Reset Password</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -57,6 +63,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
     backgroundColor: '#f9f9f9',
+  },
+  logo: {
+    width: 159, // Adjust the width of your logo
+    height: 150, // Adjust the height of your logo
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,
@@ -70,6 +82,18 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     marginBottom: 20,
+  },
+  button: {
+    backgroundColor: 'orange',
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
