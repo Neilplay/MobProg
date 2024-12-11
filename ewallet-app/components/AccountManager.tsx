@@ -14,7 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 type PaymentMethod = {
   id: number;
   name: string;
-  funds: number; // Added funds property
+  funds: number;
 };
 
 export default function AccountManager({ navigation }: { navigation: any }) {
@@ -22,11 +22,12 @@ export default function AccountManager({ navigation }: { navigation: any }) {
   const [newMethod, setNewMethod] = useState<string>('');
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [fundModalVisible, setFundModalVisible] = useState<boolean>(false);
+  const [confirmModalVisible, setConfirmModalVisible] = useState<boolean>(false);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [currentMethodId, setCurrentMethodId] = useState<number | null>(null);
   const [fundsToAdd, setFundsToAdd] = useState<string>('');
+  const [confirmAction, setConfirmAction] = useState<() => void>(() => { });
 
-  // Load payment methods on mount
   useEffect(() => {
     loadPaymentMethods();
   }, []);
@@ -36,7 +37,7 @@ export default function AccountManager({ navigation }: { navigation: any }) {
     if (savedMethods) {
       const parsedMethods = JSON.parse(savedMethods).map((method: PaymentMethod) => ({
         ...method,
-        funds: method.funds ?? 0, // Ensure funds is not undefined
+        funds: method.funds ?? 0,
       }));
       setPaymentMethods(parsedMethods);
     }
@@ -44,6 +45,16 @@ export default function AccountManager({ navigation }: { navigation: any }) {
 
   const savePaymentMethods = async (methods: PaymentMethod[]) => {
     await AsyncStorage.setItem('paymentMethods', JSON.stringify(methods));
+  };
+
+  const confirmAndExecute = (action: () => void) => {
+    setConfirmAction(() => action);
+    setConfirmModalVisible(true);
+  };
+
+  const executeConfirmedAction = () => {
+    confirmAction();
+    setConfirmModalVisible(false);
   };
 
   const addPaymentMethod = () => {
@@ -75,6 +86,11 @@ export default function AccountManager({ navigation }: { navigation: any }) {
     savePaymentMethods(updatedMethods);
   };
 
+  const openAddFundsModal = (id: number) => {
+    setCurrentMethodId(id);
+    setFundModalVisible(true);
+  };
+
   const addFundsToMethod = async () => {
     const updatedMethods = paymentMethods.map((method) =>
       method.id === currentMethodId
@@ -96,18 +112,6 @@ export default function AccountManager({ navigation }: { navigation: any }) {
     setCurrentMethodId(null);
   };
 
-  const openAddFundsModal = (id: number) => {
-    setCurrentMethodId(id);
-    setFundModalVisible(true);
-  };
-
-  const openUpdateModal = (method: PaymentMethod) => {
-    setNewMethod(method.name);
-    setCurrentMethodId(method.id);
-    setIsUpdating(true);
-    setModalVisible(true);
-  };
-
   const logTransaction = async (methodName: string, amount: number) => {
     const newTransaction = {
       id: Date.now(),
@@ -120,6 +124,13 @@ export default function AccountManager({ navigation }: { navigation: any }) {
     const transactions = savedTransactions ? JSON.parse(savedTransactions) : [];
     transactions.push(newTransaction);
     await AsyncStorage.setItem('transactions', JSON.stringify(transactions));
+  };
+
+  const openUpdateModal = (method: PaymentMethod) => {
+    setNewMethod(method.name);
+    setCurrentMethodId(method.id);
+    setIsUpdating(true);
+    setModalVisible(true);
   };
 
   return (
@@ -145,16 +156,34 @@ export default function AccountManager({ navigation }: { navigation: any }) {
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={styles.addFundsButton}
-                onPress={() => openAddFundsModal(item.id)}
+                onPress={() => confirmAndExecute(() => openAddFundsModal(item.id))}
               >
                 <Text style={styles.addFundsText}>+</Text>
               </TouchableOpacity>
-              <Button title="Update" onPress={() => openUpdateModal(item)} />
-              <Button title="Delete" onPress={() => deletePaymentMethod(item.id)} />
+              <Button
+                title="Update"
+                onPress={() => confirmAndExecute(() => openUpdateModal(item))}
+              />
+              <Button
+                title="Delete"
+                onPress={() => confirmAndExecute(() => deletePaymentMethod(item.id))}
+              />
             </View>
           </View>
         )}
       />
+
+      <Modal visible={confirmModalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text>Are you sure you want to proceed?</Text>
+            <View style={styles.modalButtons}>
+              <Button title="Yes" onPress={executeConfirmedAction} />
+              <Button title="Cancel" onPress={() => setConfirmModalVisible(false)} />
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Add or Update Payment Method Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
@@ -168,9 +197,9 @@ export default function AccountManager({ navigation }: { navigation: any }) {
             />
             <View style={styles.modalButtons}>
               {isUpdating ? (
-                <Button title="Update" onPress={updatePaymentMethod} />
+                <Button title="Update" onPress={() => confirmAndExecute(updatePaymentMethod)} />
               ) : (
-                <Button title="Add" onPress={addPaymentMethod} />
+                <Button title="Add" onPress={() => confirmAndExecute(addPaymentMethod)} />
               )}
               <Button
                 title="Cancel"
@@ -198,7 +227,7 @@ export default function AccountManager({ navigation }: { navigation: any }) {
               style={styles.input}
             />
             <View style={styles.modalButtons}>
-              <Button title="Add Funds" onPress={addFundsToMethod} />
+              <Button title="Add Funds" onPress={() => confirmAndExecute(addFundsToMethod)} />
               <Button
                 title="Cancel"
                 onPress={() => {
@@ -211,8 +240,6 @@ export default function AccountManager({ navigation }: { navigation: any }) {
           </View>
         </View>
       </Modal>
-
-
     </View>
   );
 }
@@ -267,12 +294,4 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   modalButtons: { flexDirection: 'row', justifyContent: 'space-between' },
-  historyButton: {
-    backgroundColor: '#28A745',
-    padding: 10,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  historyButtonText: { color: '#fff', fontSize: 16 },
 });
