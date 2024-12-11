@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { supabase } from '../components/backend/supabase';
+import { supabase } from '../components/backend/supabase'; // Assuming you have Supabase set up correctly
+import bcrypt from 'bcryptjs'; // Import bcryptjs for password hashing
 
 const SignUp = () => {
   const [firstName, setFirstName] = useState('');
@@ -16,18 +17,22 @@ const SignUp = () => {
       alert('Passwords do not match.');
       return;
     }
-  
+
     try {
+      // Hash the password before sending it to Supabase
+      const hashedPassword = await bcrypt.hash(password, 10);
+
       const { data, error } = await supabase.auth.signUp({
         email,
-        password,
+        password: hashedPassword, // Use the hashed password
       });
-  
+
       if (error) {
         alert(error.message);
       } else {
         const user = data?.user; // Access the user object from the data field
-  
+
+        // Insert the user data into the 'users' table along with the hashed password
         const { error: insertError } = await supabase
           .from('users')
           .insert([
@@ -36,10 +41,11 @@ const SignUp = () => {
               email,
               first_name: firstName,
               last_name: lastName,
+              password: hashedPassword, // Store the hashed password
               metadata: {},
             },
           ]);
-  
+
         if (insertError) {
           alert(insertError.message);
         } else {
@@ -50,8 +56,6 @@ const SignUp = () => {
       alert('Sign up failed. Please try again.');
     }
   };
-  
-  
 
   return (
     <View style={styles.container}>
