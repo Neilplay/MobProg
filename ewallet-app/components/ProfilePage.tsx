@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../components/backend/supabase';
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation for navigation
-import { StackNavigationProp } from '@react-navigation/stack'; // Import the navigation prop type
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { CommonActions } from '@react-navigation/native';
 
 interface UserData {
@@ -25,7 +25,7 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [image, setImage] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState(false);
-  const navigation = useNavigation<ProfilePageNavigationProp>(); // Use the typed navigation prop
+  const navigation = useNavigation<ProfilePageNavigationProp>();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -33,21 +33,22 @@ const ProfilePage = () => {
         const { data: authUser, error: authError } = await supabase.auth.getUser();
         if (authError || !authUser?.user) {
           alert('No authenticated user.');
+          navigation.navigate('Login'); // Navigate to login if no user is found
           return;
         }
-
-        const userId = authUser.user.id;
+  
+        const userEmail = authUser.user.email; // Use the email from auth user
         const { data, error } = await supabase
           .from('users')
           .select('email, first_name, last_name, metadata')
-          .eq('id', userId)
+          .eq('email', userEmail)
           .single();
-
+  
         if (error) {
           alert(error.message);
         } else {
           setUserData(data);
-          setImage(data?.metadata?.avatar_url || null);
+          setImage(data?.metadata?.avatar_url || null); // Set avatar if available
         }
       } catch (error) {
         console.error('Unexpected error:', error);
@@ -56,9 +57,25 @@ const ProfilePage = () => {
         setLoading(false);
       }
     };
-
+  
     fetchUserData();
-  }, []);
+  
+    const authStateListener = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) {
+        navigation.navigate('Login'); // Redirect to login if no session
+      }
+    });
+  
+    // Correctly access and unsubscribe from the subscription
+    return () => {
+      if (authStateListener.unsubscribe) {
+        authStateListener.unsubscribe();
+      }
+    };
+  }, [navigation]);
+  
+  
+  
 
   const handleImageUpload = async () => {
     try {
@@ -67,40 +84,40 @@ const ProfilePage = () => {
         alert('Permission to access media library is required!');
         return;
       }
-
+  
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 1,
       });
-
+  
       if (!result.canceled && result.assets?.length > 0) {
         setImageLoading(true);
         const selectedImageUri = result.assets[0].uri;
-
+  
         const response = await fetch(selectedImageUri);
         const blob = await response.blob();
-
+  
         const fileName = `avatars/${Date.now()}.jpg`;
         const { data, error: uploadError } = await supabase.storage
           .from('avatars')
           .upload(fileName, blob, { contentType: 'image/jpeg' });
-
+  
         if (uploadError) {
           alert('Image upload failed: ' + uploadError.message);
           setImageLoading(false);
           return;
         }
-
+  
         const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
         const imageUrl = publicUrlData?.publicUrl;
-
+  
         const { error } = await supabase
           .from('users')
           .update({ metadata: { avatar_url: imageUrl } })
-          .eq('id', userData?.email);
-
+          .eq('email', userData?.email);
+  
         if (error) {
           alert('Image update failed: ' + error.message);
         } else {
@@ -121,8 +138,8 @@ const ProfilePage = () => {
       const { error } = await supabase
         .from('users')
         .update({ metadata: { avatar_url: null } })
-        .eq('id', userData?.email);
-
+        .eq('email', userData?.email);
+  
       if (error) {
         alert('Image deletion failed: ' + error.message);
       } else {
@@ -135,20 +152,16 @@ const ProfilePage = () => {
     }
   };
 
-  // Add a logout function to sign out the user
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut(); // Log the user out
-  
-      // Ensure the 'Login' screen is navigated to properly
-      // Set the isLoggedIn state to false in App component
+      await supabase.auth.signOut();
       navigation.navigate('Login');
     } catch (error) {
       console.error('Error logging out:', error);
       alert('Error logging out');
     }
   };
-  
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -197,7 +210,6 @@ const ProfilePage = () => {
         </TouchableOpacity>
       )}
 
-      {/* Logout Button */}
       <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
         <Text style={styles.buttonText}>Logout</Text>
       </TouchableOpacity>

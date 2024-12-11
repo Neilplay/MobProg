@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image } from 'reac
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { supabase } from '../components/backend/supabase'; // Import your Supabase client
+import bcrypt from 'bcryptjs'; // Import bcrypt for password comparison
 
 type AuthStackParamList = {
   ForgotPassword: undefined;
@@ -23,13 +24,31 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
   const handleLoginPress = async (): Promise<void> => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        alert(error.message);
-      } else {
+      // Query the users table to get the user data based on the email
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .single(); // Only expecting one user
+
+      if (error || !data) {
+        console.error('Login Error:', error || 'User not found');
+        alert('User not found');
+        return;
+      }
+
+      // Compare the provided password with the stored hashed password using bcrypt
+      const isPasswordValid = await bcrypt.compare(password, data.password);
+
+      if (isPasswordValid) {
+        console.log('Login Success:', data);
         onLogin();
+      } else {
+        console.error('Invalid password');
+        alert('Invalid password');
       }
     } catch (err) {
+      console.error('Login failed with exception:', err);
       alert('Login failed. Please try again.');
     }
   };
