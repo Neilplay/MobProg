@@ -1,27 +1,53 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AccountManager from './components/AccountManager';
 import TransactionScreen from './components/TransactionScreen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StatusBar } from 'react-native';
+import { StatusBar, Text, View } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-type RootStackParamList = {
-  AccountManager: undefined;
-  TransactionScreen: undefined;
-};
-
-const Stack = createStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator();
 
 export default function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
         <StatusBar barStyle="dark-content" />
-        <Stack.Navigator initialRouteName="AccountManager" screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="AccountManager" component={AccountManager} />
-          <Stack.Screen name="TransactionScreen" component={TransactionScreen} />
-        </Stack.Navigator>
+        <Tab.Navigator
+          initialRouteName="AccountManager"
+          screenOptions={({ route }) => ({
+            tabBarIcon: ({ focused, color, size }) => {
+              let iconName: string;
+
+              if (route.name === 'AccountManager') {
+                iconName = focused ? 'wallet' : 'wallet-outline';
+              } else if (route.name === 'TransactionScreen') {
+                iconName = focused ? 'cash' : 'cash-outline';
+              } else {
+                iconName = 'help-circle'; // Default icon if no match
+              }
+
+              // Return the icon component
+              return <Ionicons name={iconName} size={size} color={color} />;
+            },
+            tabBarActiveTintColor: '#007BFF',
+            tabBarInactiveTintColor: 'gray',
+            headerShown: false,
+          })}
+        >
+          <Tab.Screen
+            name="AccountManager"
+            component={AccountManager}
+            options={{ title: 'Payment Methods' }}
+          />
+          <Tab.Screen
+            name="TransactionScreen"
+            component={TransactionScreen}
+            options={{ title: 'Transactions' }}
+          />
+        </Tab.Navigator>
+
       </NavigationContainer>
     </SafeAreaProvider>
   );

@@ -60,7 +60,7 @@ export default function AccountManager({ navigation }: { navigation: any }) {
         )}
       />
 
-      <Button title="Go to Transactions" onPress={() => navigation.navigate('TransactionScreen')} />
+
 
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalContainer}>
