@@ -6,6 +6,8 @@ import TransactionScreen from './components/TransactionScreen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar, Text, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import TransactionHistory from './components/TransactionHistory';
+
 
 const Tab = createBottomTabNavigator();
 
@@ -24,11 +26,12 @@ export default function App() {
                 iconName = focused ? 'wallet' : 'wallet-outline';
               } else if (route.name === 'TransactionScreen') {
                 iconName = focused ? 'cash' : 'cash-outline';
+              } else if (route.name === 'TransactionHistory') {
+                iconName = focused ? 'list' : 'list-outline';
               } else {
-                iconName = 'help-circle'; // Default icon if no match
+                iconName = 'help-circle';
               }
 
-              // Return the icon component
               return <Ionicons name={iconName} size={size} color={color} />;
             },
             tabBarActiveTintColor: '#007BFF',
@@ -46,7 +49,13 @@ export default function App() {
             component={TransactionScreen}
             options={{ title: 'Transactions' }}
           />
+          <Tab.Screen
+            name="TransactionHistory"
+            component={TransactionHistory}
+            options={{ title: 'History' }}
+          />
         </Tab.Navigator>
+
 
       </NavigationContainer>
     </SafeAreaProvider>

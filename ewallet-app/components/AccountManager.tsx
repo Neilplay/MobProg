@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, FlatList, TextInput, Modal, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  TextInput,
+  Modal,
+  StyleSheet,
+  TouchableOpacity,
+  Button,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type PaymentMethod = {
@@ -17,6 +26,7 @@ export default function AccountManager({ navigation }: { navigation: any }) {
   const [currentMethodId, setCurrentMethodId] = useState<number | null>(null);
   const [fundsToAdd, setFundsToAdd] = useState<string>('');
 
+  // Load payment methods on mount
   useEffect(() => {
     loadPaymentMethods();
   }, []);
@@ -37,7 +47,10 @@ export default function AccountManager({ navigation }: { navigation: any }) {
   };
 
   const addPaymentMethod = () => {
-    const updatedMethods = [...paymentMethods, { id: Date.now(), name: newMethod, funds: 0 }];
+    const updatedMethods = [
+      ...paymentMethods,
+      { id: Date.now(), name: newMethod, funds: 0 },
+    ];
     setPaymentMethods(updatedMethods);
     savePaymentMethods(updatedMethods);
     setNewMethod('');
@@ -62,7 +75,7 @@ export default function AccountManager({ navigation }: { navigation: any }) {
     savePaymentMethods(updatedMethods);
   };
 
-  const addFundsToMethod = () => {
+  const addFundsToMethod = async () => {
     const updatedMethods = paymentMethods.map((method) =>
       method.id === currentMethodId
         ? { ...method, funds: method.funds + parseFloat(fundsToAdd || '0') }
@@ -70,6 +83,14 @@ export default function AccountManager({ navigation }: { navigation: any }) {
     );
     setPaymentMethods(updatedMethods);
     savePaymentMethods(updatedMethods);
+
+    const methodName = paymentMethods.find((method) => method.id === currentMethodId)
+      ?.name;
+
+    if (methodName) {
+      await logTransaction(methodName, parseFloat(fundsToAdd || '0'));
+    }
+
     setFundsToAdd('');
     setFundModalVisible(false);
     setCurrentMethodId(null);
@@ -87,11 +108,28 @@ export default function AccountManager({ navigation }: { navigation: any }) {
     setModalVisible(true);
   };
 
+  const logTransaction = async (methodName: string, amount: number) => {
+    const newTransaction = {
+      id: Date.now(),
+      methodName,
+      amount,
+      date: new Date().toLocaleString(),
+    };
+
+    const savedTransactions = await AsyncStorage.getItem('transactions');
+    const transactions = savedTransactions ? JSON.parse(savedTransactions) : [];
+    transactions.push(newTransaction);
+    await AsyncStorage.setItem('transactions', JSON.stringify(transactions));
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Manage Payment Methods</Text>
 
-      <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => setModalVisible(true)}
+      >
         <Text style={styles.addButtonText}>+ Add Payment Method</Text>
       </TouchableOpacity>
 
@@ -173,21 +211,15 @@ export default function AccountManager({ navigation }: { navigation: any }) {
           </View>
         </View>
       </Modal>
+
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#f9f9f9',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
+  container: { flex: 1, padding: 20, backgroundColor: '#f9f9f9' },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
   paymentMethod: {
     padding: 15,
     backgroundColor: '#fff',
@@ -197,16 +229,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  methodDetails: {
-    flex: 1,
-  },
-  paymentMethodText: {
-    fontSize: 18,
-  },
-  fundsText: {
-    fontSize: 16,
-    color: 'gray',
-  },
+  methodDetails: { flex: 1 },
+  paymentMethodText: { fontSize: 18 },
+  fundsText: { fontSize: 16, color: 'gray' },
   actionButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -218,11 +243,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginRight: 10,
   },
-  addFundsText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
+  addFundsText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
   addButton: {
     backgroundColor: '#007BFF',
     padding: 10,
@@ -230,22 +251,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     alignItems: 'center',
   },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
+  addButtonText: { color: '#fff', fontSize: 16 },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  modalContent: {
-    width: '80%',
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-  },
+  modalContent: { width: '80%', padding: 20, backgroundColor: '#fff', borderRadius: 10 },
   input: {
     borderWidth: 1,
     borderColor: '#ddd',
@@ -253,8 +266,13 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 10,
   },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  modalButtons: { flexDirection: 'row', justifyContent: 'space-between' },
+  historyButton: {
+    backgroundColor: '#28A745',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 20,
   },
+  historyButtonText: { color: '#fff', fontSize: 16 },
 });
