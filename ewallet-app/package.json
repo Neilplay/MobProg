@@ -18,6 +18,7 @@
     "@supabase/supabase-js": "^2.47.3",
     "@types/react-router-dom": "^5.3.3",
     "expo": "~52.0.15",
+    "expo-image-picker": "~16.0.3",
     "expo-status-bar": "~2.0.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -28,8 +29,7 @@
     "react-native-screens": "~4.1.0",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.13",
-    "react-router-dom": "^7.0.2",
-    "expo-image-picker": "~16.0.3"
+    "react-router-dom": "^7.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
