@@ -18,6 +18,7 @@ interface LoginPageProps {
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
   const navigation = useNavigation<LoginScreenNavigationProp>();
 
   const handleLoginPress = async (): Promise<void> => {
@@ -47,13 +48,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         style={styles.input}
         keyboardType="email-address"
       />
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        style={styles.input}
-        secureTextEntry
-      />
+      <View style={styles.passwordContainer}>
+        <TextInput
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          style={styles.input}
+          secureTextEntry={!showPassword} // Toggle password visibility
+        />
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+          <Text style={styles.eyeIconText}>{showPassword ? 'Hide' : 'Show'}</Text>
+        </TouchableOpacity>
+      </View>
       <TouchableOpacity style={styles.button} onPress={handleLoginPress}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
@@ -92,6 +98,19 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     marginBottom: 20,
+  },
+  passwordContainer: {
+    position: 'relative',
+    marginBottom: 20,
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: 15,
+  },
+  eyeIconText: {
+    color: '#007BFF',
+    fontSize: 16,
   },
   button: {
     backgroundColor: 'orange',
