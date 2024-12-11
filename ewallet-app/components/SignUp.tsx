@@ -3,6 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'reac
 import { supabase } from '../components/backend/supabase';
 
 const SignUp = () => {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -14,17 +16,42 @@ const SignUp = () => {
       alert('Passwords do not match.');
       return;
     }
+  
     try {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+  
       if (error) {
         alert(error.message);
       } else {
-        alert('Sign up successful! Please check your email to confirm.');
+        const user = data?.user; // Access the user object from the data field
+  
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert([
+            {
+              id: user?.id,
+              email,
+              first_name: firstName,
+              last_name: lastName,
+              metadata: {},
+            },
+          ]);
+  
+        if (insertError) {
+          alert(insertError.message);
+        } else {
+          alert('Sign up successful! Please check your email to confirm.');
+        }
       }
     } catch (err) {
       alert('Sign up failed. Please try again.');
     }
   };
+  
+  
 
   return (
     <View style={styles.container}>
@@ -33,6 +60,18 @@ const SignUp = () => {
         style={styles.logo}
       />
       <Text style={styles.title}>Sign Up</Text>
+      <TextInput
+        placeholder="First Name"
+        value={firstName}
+        onChangeText={setFirstName}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Last Name"
+        value={lastName}
+        onChangeText={setLastName}
+        style={styles.input}
+      />
       <TextInput
         placeholder="Email"
         value={email}
@@ -79,8 +118,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
   },
   logo: {
-    width: 159, // Adjust the width of your logo
-    height: 150, // Adjust the height of your logo
+    width: 159,
+    height: 150,
     alignSelf: 'center',
     marginBottom: 20,
   },
